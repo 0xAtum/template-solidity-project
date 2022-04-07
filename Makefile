@@ -15,6 +15,6 @@ clean  :; forge clean
 snapshot :; forge clean && forge snapshot --optimize --optimize-runs 1000000
 
 # Hardhat
-deploy-testnet :; npx hardhat run --network rinkeby scripts/deploy.testnet.ts
 deploy-local :; npx hardhat run --network localhost scripts/deploy.local.ts
+deploy-testnet :; npx hardhat run --network rinkeby scripts/deploy.testnet.ts
 deploy-mainnet :; npx hardhat run --network localhost scripts/deploy.mainnet.ts

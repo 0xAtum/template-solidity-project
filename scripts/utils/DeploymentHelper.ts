@@ -2,7 +2,7 @@ import { ContractFactory } from "ethers"
 import { writeFileSync, existsSync } from "fs"
 import { IDeployConfig } from "../config/DeployConfig"
 import { colorLog, Colors } from "./ColorConsole"
-import { ethers, upgrades } from "hardhat"
+import { ethers, upgrades, run } from "hardhat"
 
 export class DeploymentHelper {
 	path: string = "./scripts/deployments/"
@@ -67,16 +67,22 @@ export class DeploymentHelper {
 		return contract
 	}
 
-	async deployContractByName(contractFileName: string, name?: string) {
+	async deployContractByName(
+		contractFileName: string,
+		name?: string,
+		...args: Array<any>
+	) {
 		return await this.deployContract(
 			await ethers.getContractFactory(contractFileName),
-			name !== undefined ? name : contractFileName
+			name !== undefined ? name : contractFileName,
+			...args
 		)
 	}
 
 	async deployContract(
 		contractFactory: ContractFactory,
-		contractName: string
+		contractName: string,
+		...args: Array<any>
 	) {
 		const [findOld, address] =
 			this.tryToGetSaveContractAddress(contractName)
@@ -93,6 +99,7 @@ export class DeploymentHelper {
 		}
 
 		this.saveDeployment()
+		await this.verifyContract(contract.address, ...args)
 
 		colorLog(
 			Colors.green,
@@ -108,6 +115,17 @@ export class DeploymentHelper {
 			2
 		)
 		writeFileSync(this.path + this.config.outputFile, deploymentStateJson)
+	}
+
+	async verifyContract(contractAddress: string, ...args: Array<any>) {
+		try {
+			await run("verify:verify", {
+				address: contractAddress,
+				constructorArguments: args,
+			})
+		} catch (e) {
+			colorLog(Colors.red, `Failed to verify ${contractAddress}. ${e}`)
+		}
 	}
 
 	tryToGetSaveContractAddress(contractName: string): [boolean, string] {
