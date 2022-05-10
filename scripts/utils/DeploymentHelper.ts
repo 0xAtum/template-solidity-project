@@ -29,7 +29,7 @@ export class DeploymentHelper {
 			await ethers.getContractFactory(contractName),
 			identityName,
 			initializerFunctionName,
-			args
+			...args
 		)
 	}
 
@@ -91,7 +91,7 @@ export class DeploymentHelper {
 			return contractFactory.attach(address)
 		}
 
-		const contractDeployer = await contractFactory.deploy()
+		const contractDeployer = await contractFactory.deploy(...args)
 		const contract = await contractDeployer.deployed()
 
 		this.deploymentState[contractName] = {
