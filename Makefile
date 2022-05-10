@@ -6,13 +6,13 @@
 update:; forge update
 
 # Build & test
-build  :; forge clean && forge build --optimize --optimize-runs 1000000
-test   :; forge clean && forge test --optimize --optimize-runs 1000000 -v
-test-debug   :; forge clean && forge test --optimize --optimize-runs 1000000 -vv
-test-trace   :; forge clean && forge test --optimize --optimize-runs 1000000 -vvv
-gas-report :; forge clean && forge test --optimize --optimize-runs 1000000 --gas-report
+build  :; forge clean && forge build --optimize --optimizer-runs 1000000
+test   :; forge clean && forge test --optimize --optimizer-runs 1000000 -v
+test-debug   :; forge clean && forge test --optimize --optimizer-runs 1000000 -vv
+test-trace   :; forge clean && forge test --optimize --optimizer-runs 1000000 -vvv
+gas-report :; forge clean && forge test --optimize --optimizer-runs 1000000 --gas-report
 clean  :; forge clean
-snapshot :; forge clean && forge snapshot --optimize --optimize-runs 1000000
+snapshot :; forge clean && forge snapshot --optimize --optimizer-runs 1000000
 
 # Hardhat
 deploy-local :; npx hardhat run --network localhost scripts/deploy.local.ts
