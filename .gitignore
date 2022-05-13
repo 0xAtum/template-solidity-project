@@ -3,8 +3,10 @@
 cache/
 out/
 
-node_modules
 .env
+.secrets.ts
+
+node_modules
 coverage
 coverage.json
 typechain
