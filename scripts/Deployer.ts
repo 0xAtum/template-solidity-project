@@ -12,8 +12,9 @@ export class Deployer {
 	}
 
 	async run() {
-		const Contract = await ethers.getContractFactory("Contract")
+		this.helper.initHelper()
 
+		const Contract = await ethers.getContractFactory("Contract")
 		const contract = await this.helper.deployContract(
 			Contract,
 			"DefaultContract"
