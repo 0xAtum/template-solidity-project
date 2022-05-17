@@ -4,8 +4,7 @@ import { colorLog, Colors, addColor } from "./utils/ColorConsole"
 import * as readline from "readline-sync"
 
 const config: IDeployConfig = {
-  outputFile: "./mainnet_deployments.json",
-  TX_CONFIRMATIONS: 3,
+	TX_CONFIRMATIONS: 3,
 }
 
 async function main() {
@@ -32,3 +31,4 @@ main().catch(error => {
 	console.error(error)
 	process.exitCode = 1
 })
+

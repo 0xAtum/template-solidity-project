@@ -5,18 +5,29 @@ import { colorLog, Colors } from "./ColorConsole"
 import { ethers, upgrades, run } from "hardhat"
 
 export class DeploymentHelper {
-	path: string = "./scripts/deployments/"
+	private path: string = "./scripts/deployments/"
+	private fileName: string = "NOT_INIT.json"
+	private systemInitialized: boolean = false
 	config: IDeployConfig
 	deploymentState: { [id: string]: IDeploymentHistory } = {}
 
 	constructor(config: IDeployConfig) {
 		this.config = config
+	}
 
-		if (!existsSync(this.path + config.outputFile)) {
+	async initHelper() {
+		if (this.systemInitialized) return
+
+		const { name, chainId } = await ethers.provider.getNetwork()
+
+		this.fileName = `${name}(${chainId})_deployment.json`
+		this.systemInitialized = true
+
+		if (!existsSync(this.path + this.fileName)) {
 			return
 		}
 
-		this.deploymentState = require("../deployments/" + config.outputFile)
+		this.deploymentState = require("../deployments/" + this.fileName)
 	}
 
 	async deployUpgradeableContractWithName(
@@ -39,8 +50,9 @@ export class DeploymentHelper {
 		initializerFunctionName?: string,
 		...args: Array<any>
 	) {
-		const [findOld, address] =
-			this.tryToGetSaveContractAddress(identityName)
+		const [findOld, address] = await this.tryToGetSaveContractAddress(
+			identityName
+		)
 
 		if (findOld) {
 			return contractFactory.attach(address)
@@ -84,8 +96,9 @@ export class DeploymentHelper {
 		contractName: string,
 		...args: Array<any>
 	) {
-		const [findOld, address] =
-			this.tryToGetSaveContractAddress(contractName)
+		const [findOld, address] = await this.tryToGetSaveContractAddress(
+			contractName
+		)
 
 		if (findOld) {
 			return contractFactory.attach(address)
@@ -114,7 +127,7 @@ export class DeploymentHelper {
 			null,
 			2
 		)
-		writeFileSync(this.path + this.config.outputFile, deploymentStateJson)
+		writeFileSync(this.path + this.fileName, deploymentStateJson)
 	}
 
 	async verifyContract(contractAddress: string, ...args: Array<any>) {
@@ -128,7 +141,11 @@ export class DeploymentHelper {
 		}
 	}
 
-	tryToGetSaveContractAddress(contractName: string): [boolean, string] {
+	async tryToGetSaveContractAddress(
+		contractName: string
+	): Promise<[boolean, string]> {
+		if (!this.systemInitialized) await this.initHelper()
+
 		if (this.deploymentState[contractName] !== undefined) {
 			const address = this.deploymentState[contractName].address
 			colorLog(
@@ -160,3 +177,4 @@ export class DeploymentHelper {
 		return minedTx
 	}
 }
+

@@ -1,4 +1,4 @@
 export interface IDeployConfig {
-  outputFile: string
-  TX_CONFIRMATIONS: number
+	TX_CONFIRMATIONS: number
 }
+

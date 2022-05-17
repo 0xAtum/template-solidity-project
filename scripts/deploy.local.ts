@@ -2,7 +2,6 @@ import { IDeployConfig } from "./config/DeployConfig"
 import { Deployer } from "./Deployer"
 
 const config: IDeployConfig = {
-	outputFile: "local_deployments.json",
 	TX_CONFIRMATIONS: 1,
 }
 
