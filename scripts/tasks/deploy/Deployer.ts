@@ -27,6 +27,9 @@ export class Deployer {
 		You can find the configuration inside ./scripts/tasks/deploy/deploy.testnet.ts
 
 		In a real envrionment, CoontractConfigExample wouldn't be nullable.
+
+		To make things easier for you, the name you use in your hardhat config should be the same of SupportedChain 
+		in ./scripts/config/NetworkConfig.ts
 		*/
 		if (this.config.ContractConfigExample !== undefined) {
 			if (this.config.ContractConfigExample[networkName] === undefined) {
