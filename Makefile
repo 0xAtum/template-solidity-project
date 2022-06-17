@@ -4,6 +4,7 @@
 
 # deps
 update:; forge update
+remappings:; forge remappings > remappings.txt
 
 # Build & test
 build  :; forge clean && forge build --optimize --optimizer-runs 1000000
@@ -15,6 +16,6 @@ clean  :; forge clean
 snapshot :; forge clean && forge snapshot --optimize --optimizer-runs 1000000
 
 # Hardhat
-deploy-local :; npx hardhat run --network localhost scripts/deploy.local.ts
-deploy-testnet :; npx hardhat run --network rinkeby scripts/deploy.testnet.ts
-deploy-mainnet :; npx hardhat run --network mainnet scripts/deploy.mainnet.ts
+deploy-local :; npx hardhat deploy --network localhost --env localhost
+deploy-testnet :; npx hardhat deploy --network rinkeby --env testnet
+deploy-mainnet :; npx hardhat deploy --network mainnet --env mainnet

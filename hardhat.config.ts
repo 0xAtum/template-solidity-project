@@ -1,12 +1,20 @@
+import fs from "fs"
 import { secrets } from "./.secrets"
 
-import { HardhatUserConfig, subtask } from "hardhat/config"
+import { HardhatUserConfig, subtask, task } from "hardhat/config"
 import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names"
+import "hardhat-preprocessor"
+import "@typechain/hardhat"
 
 import "@nomiclabs/hardhat-etherscan"
 import "@nomiclabs/hardhat-waffle"
-import "@typechain/hardhat"
 import "@openzeppelin/hardhat-upgrades"
+
+import deploy from "./scripts/tasks/DeployTask"
+
+task("deploy", "Deploy task")
+	.addParam("env", "localhost | testnet | mainnet", "testnet")
+	.setAction(deploy)
 
 subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(
 	async (_, __, runSuper) => {
@@ -16,6 +24,14 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(
 		)
 	}
 )
+
+function getRemappings() {
+	return fs
+		.readFileSync("remappings.txt", "utf8")
+		.split("\n")
+		.filter(Boolean)
+		.map(line => line.trim().split("="))
+}
 
 const config: HardhatUserConfig = {
 	defaultNetwork: "localhost",
@@ -34,8 +50,8 @@ const config: HardhatUserConfig = {
 	},
 	etherscan: {
 		apiKey: {
-			mainnet: secrets.networks.mainnet!.ETHERSCAN_API_KEY,
-			rinkeby: secrets.networks.rinkeby!.ETHERSCAN_API_KEY,
+			mainnet: secrets.networks.mainnet?.ETHERSCAN_API_KEY!,
+			rinkeby: secrets.networks.rinkeby?.ETHERSCAN_API_KEY!,
 		},
 	},
 	solidity: {
@@ -48,10 +64,22 @@ const config: HardhatUserConfig = {
 		},
 	},
 	paths: {
-		sources: "./src",
-		tests: "./test",
 		cache: "./hardhat/cache",
 		artifacts: "./hardhat/artifacts",
+	},
+	preprocess: {
+		eachLine: hre => ({
+			transform: (line: string) => {
+				if (line.match(/^\s*import /i)) {
+					getRemappings().forEach(([find, replace]) => {
+						if (line.match(find)) {
+							line = line.replace(find, replace)
+						}
+					})
+				}
+				return line
+			},
+		}),
 	},
 }
 

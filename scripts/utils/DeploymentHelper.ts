@@ -1,31 +1,23 @@
 import { ContractFactory } from "ethers"
 import { writeFileSync, existsSync } from "fs"
+import { HardhatRuntimeEnvironment } from "hardhat/types"
 import { IDeployConfig } from "../config/DeployConfig"
 import { colorLog, Colors } from "./ColorConsole"
-import { ethers, upgrades, run } from "hardhat"
 
 export class DeploymentHelper {
 	private path: string = "./scripts/deployments/"
 	private fileName: string = "NOT_INIT.json"
-	private systemInitialized: boolean = false
+	private hre: HardhatRuntimeEnvironment
 	config: IDeployConfig
 	deploymentState: { [id: string]: IDeploymentHistory } = {}
 
-	constructor(config: IDeployConfig) {
+	constructor(config: IDeployConfig, hre: HardhatRuntimeEnvironment) {
 		this.config = config
-	}
+		this.hre = hre
 
-	async initHelper() {
-		if (this.systemInitialized) return
+		this.fileName = `${hre.network.name}_deployment.json`
 
-		const { name, chainId } = await ethers.provider.getNetwork()
-
-		this.fileName = `${name}(${chainId})_deployment.json`
-		this.systemInitialized = true
-
-		if (!existsSync(this.path + this.fileName)) {
-			return
-		}
+		if (!existsSync(this.path + this.fileName)) return
 
 		this.deploymentState = require("../deployments/" + this.fileName)
 	}
@@ -37,7 +29,7 @@ export class DeploymentHelper {
 		...args: Array<any>
 	) {
 		return this.deployUpgradeableContract(
-			await ethers.getContractFactory(contractName),
+			await this.hre.ethers.getContractFactory(contractName),
 			identityName,
 			initializerFunctionName,
 			...args
@@ -60,14 +52,14 @@ export class DeploymentHelper {
 
 		const contract =
 			initializerFunctionName !== undefined
-				? await upgrades.deployProxy(contractFactory, args, {
+				? await this.hre.upgrades.deployProxy(contractFactory, args, {
 						initializer: initializerFunctionName,
 				  })
-				: await upgrades.deployProxy(contractFactory)
+				: await this.hre.upgrades.deployProxy(contractFactory)
 
 		this.deploymentState[identityName] = {
 			address: contract.address,
-			proxyAdmin: (await upgrades.admin.getInstance()).address,
+			proxyAdmin: (await this.hre.upgrades.admin.getInstance()).address,
 		}
 
 		colorLog(
@@ -85,7 +77,7 @@ export class DeploymentHelper {
 		...args: Array<any>
 	) {
 		return await this.deployContract(
-			await ethers.getContractFactory(contractFileName),
+			await this.hre.ethers.getContractFactory(contractFileName),
 			name !== undefined ? name : contractFileName,
 			...args
 		)
@@ -132,7 +124,7 @@ export class DeploymentHelper {
 
 	async verifyContract(contractAddress: string, ...args: Array<any>) {
 		try {
-			await run("verify:verify", {
+			await this.hre.run("verify:verify", {
 				address: contractAddress,
 				constructorArguments: args,
 			})
@@ -144,8 +136,6 @@ export class DeploymentHelper {
 	async tryToGetSaveContractAddress(
 		contractName: string
 	): Promise<[boolean, string]> {
-		if (!this.systemInitialized) await this.initHelper()
-
 		if (this.deploymentState[contractName] !== undefined) {
 			const address = this.deploymentState[contractName].address
 			colorLog(
@@ -161,7 +151,7 @@ export class DeploymentHelper {
 
 	async sendAndWaitForTransaction(txPromise: Promise<any>) {
 		const tx = await txPromise
-		const minedTx = await ethers.provider.waitForTransaction(
+		const minedTx = await this.hre.ethers.provider.waitForTransaction(
 			tx.hash,
 			this.config.TX_CONFIRMATIONS
 		)
@@ -177,4 +167,3 @@ export class DeploymentHelper {
 		return minedTx
 	}
 }
-
