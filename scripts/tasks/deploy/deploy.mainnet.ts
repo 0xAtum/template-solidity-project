@@ -1,13 +1,14 @@
-import { IDeployConfig } from "./config/DeployConfig"
+import { IDeployConfig } from "../../config/DeployConfig"
 import { Deployer } from "./Deployer"
-import { colorLog, Colors, addColor } from "./utils/ColorConsole"
-import * as readline from "readline-sync"
+import { colorLog, Colors, addColor } from "../../utils/ColorConsole"
+import { HardhatRuntimeEnvironment } from "hardhat/types/runtime"
+import readline from "readline-sync"
 
 const config: IDeployConfig = {
 	TX_CONFIRMATIONS: 3,
 }
 
-async function main() {
+export async function execute(hre: HardhatRuntimeEnvironment) {
 	var userinput: string = "0"
 
 	userinput = readline.question(
@@ -24,11 +25,5 @@ async function main() {
 
 	colorLog(Colors.green, `User approved the deployment\n`)
 
-	await new Deployer(config).run()
+	await new Deployer(config, hre).run()
 }
-
-main().catch(error => {
-	console.error(error)
-	process.exitCode = 1
-})
-

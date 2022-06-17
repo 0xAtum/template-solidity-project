@@ -1,4 +1,4 @@
-type SupportedChain =
+export type SupportedChain =
 	| "mainnet"
 	| "ropsten"
 	| "rinkeby"
@@ -31,6 +31,8 @@ type SupportedChain =
 	// xdai
 	| "xdai"
 	| "sokol"
+	// localhost
+	| "localhost"
 
 export type ChainConfig = {
 	[key in SupportedChain]?: Network
