@@ -3,6 +3,7 @@ import { DeploymentHelper } from "../../utils/DeploymentHelper"
 import { HardhatRuntimeEnvironment } from "hardhat/types/runtime"
 import { HardhatEthersHelpers } from "@nomiclabs/hardhat-ethers/types"
 import { colorLog, Colors } from "../../utils/ColorConsole"
+import { Contract } from "ethers"
 
 export class Deployer {
 	config: IDeployConfig
@@ -19,6 +20,35 @@ export class Deployer {
 
 	async run() {
 		const [signer] = await this.ethers.getSigners()
+		console.log(`\nActive Deployer: ${signer.address}`)
+
+		//Example deploying
+		const defaultContract: Contract = await this.deployContractExample()
+
+		console.log(
+			`\nDefault Contract deployed at ${defaultContract.address} on ${this.hre.network.name}`
+		)
+
+		//Example fetching contract deployed contract on different chain
+		console.log(
+			`\nKovan's Default Contract address is: ${
+				this.getDefaultContractFromKovanExample()[1]
+			}`
+		)
+
+		//Example loading an already deployed contract.
+		const testLoadingContract: Contract | undefined =
+			await this.loadSavedContractExample()
+
+		const loadingMessage: String =
+			testLoadingContract !== undefined
+				? `Successfully loaded defaultContract-${testLoadingContract.address} with history`
+				: "Failed to load defaultContract with history"
+
+		console.log(loadingMessage)
+	}
+
+	private async deployContractExample(): Promise<Contract> {
 		const networkName: string = this.hre.network.name
 
 		/* 
@@ -26,7 +56,7 @@ export class Deployer {
 		You can find the type config inside ./scripts/config/DeployConfig.ts
 		You can find the configuration inside ./scripts/tasks/deploy/deploy.testnet.ts
 
-		In a real envrionment, CoontractConfigExample wouldn't be nullable.
+		In a real envrionment, CoontractConfigExample should not be nullable.
 
 		To make things easier for you, the name you use in your hardhat config should be the same of SupportedChain 
 		in ./scripts/config/NetworkConfig.ts
@@ -47,13 +77,23 @@ export class Deployer {
 			}
 		}
 
-		const contract = await this.helper.deployContractByName(
+		return await this.helper.deployContractByName(
 			"Contract",
 			"DefaultContract"
 		)
+	}
 
-		console.log(
-			`\n\nSigner: ${signer.address} deployed a contract at ${contract.address}`
+	private getDefaultContractFromKovanExample(): [boolean, string] {
+		return this.helper.getOtherChainContractAddress(
+			"kovan",
+			"DefaultContract"
+		)
+	}
+
+	private async loadSavedContractExample(): Promise<Contract | undefined> {
+		return await this.helper.tryToLoadCachedContract(
+			"Contract",
+			"DefaultContract"
 		)
 	}
 }

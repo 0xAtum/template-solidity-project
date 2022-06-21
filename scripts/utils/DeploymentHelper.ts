@@ -1,7 +1,8 @@
-import { ContractFactory } from "ethers"
+import { Contract, ContractFactory, ethers } from "ethers"
 import { writeFileSync, existsSync } from "fs"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
 import { IDeployConfig } from "../config/DeployConfig"
+import { SupportedChain } from "../config/NetworkConfig"
 import { colorLog, Colors } from "./ColorConsole"
 
 export class DeploymentHelper {
@@ -22,12 +23,21 @@ export class DeploymentHelper {
 		this.deploymentState = require("../deployments/" + this.fileName)
 	}
 
+	/**
+	 *
+	 * @param contractName The ethers.getContractFactory's factory
+	 * @param identityName The name of the contract inside <chain>_deployment.json
+	 * 					   if undefined, it uses the contractName's value.
+	 * @param initializerFunctionName The function you want to call right after the deployment of the contract.
+	 * @param args The arguments for the initializer function of your contract
+	 * @returns the contract object
+	 */
 	async deployUpgradeableContractWithName(
 		contractName: string,
 		identityName: string,
 		initializerFunctionName?: string,
 		...args: Array<any>
-	) {
+	): Promise<Contract> {
 		return this.deployUpgradeableContract(
 			await this.hre.ethers.getContractFactory(contractName),
 			identityName,
@@ -36,13 +46,22 @@ export class DeploymentHelper {
 		)
 	}
 
-	async deployUpgradeableContract(
+	/**
+	 *
+	 * @param contractFactory The name of the contract inside the .sol file
+	 * @param identityName The name of the contract inside <chain>_deployment.json
+	 * 					   if undefined, it uses the contractName's value.
+	 * @param initializerFunctionName The function you want to call right after the deployment of the contract.
+	 * @param args The arguments for the initializer function of your contract
+	 * @returns the contract object
+	 */
+	private async deployUpgradeableContract(
 		contractFactory: ContractFactory,
 		identityName: string,
 		initializerFunctionName?: string,
 		...args: Array<any>
-	) {
-		const [findOld, address] = await this.tryToGetSaveContractAddress(
+	): Promise<Contract> {
+		const [findOld, address] = await this.tryToGetCachedContractAddress(
 			identityName
 		)
 
@@ -71,24 +90,40 @@ export class DeploymentHelper {
 		return contract
 	}
 
+	/**
+	 *
+	 * @dev If the contract is already deployed, it'll not deploy it and instead only load it.
+	 * @param contractName The name of the contract inside the .sol file
+	 * @param identityName The name of the contract inside <chain>_deployment.json
+	 * 					   if undefined, it uses the contractName's value.
+	 * @param args The constructor's arguments
+	 * @returns the contract object
+	 */
 	async deployContractByName(
-		contractFileName: string,
-		name?: string,
+		contractName: string,
+		identityName?: string,
 		...args: Array<any>
-	) {
+	): Promise<Contract> {
 		return await this.deployContract(
-			await this.hre.ethers.getContractFactory(contractFileName),
-			name !== undefined ? name : contractFileName,
+			await this.hre.ethers.getContractFactory(contractName),
+			identityName !== undefined ? identityName : contractName,
 			...args
 		)
 	}
 
-	async deployContract(
+	/**
+	 *
+	 * @param contractFactory The ethers.getContractFactory's factory
+	 * @param contractName The name of the contract inside the .sol file
+	 * @param args Constructor's parameters if any
+	 * @returns The contract object
+	 */
+	private async deployContract(
 		contractFactory: ContractFactory,
 		contractName: string,
 		...args: Array<any>
-	) {
-		const [findOld, address] = await this.tryToGetSaveContractAddress(
+	): Promise<Contract> {
+		const [findOld, address] = await this.tryToGetCachedContractAddress(
 			contractName
 		)
 
@@ -110,10 +145,11 @@ export class DeploymentHelper {
 			Colors.green,
 			`Deployed ${contractName} at ${contract.address}`
 		)
+
 		return contract
 	}
 
-	saveDeployment() {
+	private saveDeployment() {
 		const deploymentStateJson = JSON.stringify(
 			this.deploymentState,
 			null,
@@ -122,6 +158,13 @@ export class DeploymentHelper {
 		writeFileSync(this.path + this.fileName, deploymentStateJson)
 	}
 
+	/**
+	 *
+	 * @dev If your contract has a constructor, for some reason this function might fails.
+	 * 		You can manually do it via `npx hardhat verify --network <NETWORK> <CONTRACT_ADDRESS> <PARAMETER_A> <PARAMETER_B> <ETC>`
+	 * @param contractAddress Deployed contract address
+	 * @param args The constructor arguments if any.
+	 */
 	async verifyContract(contractAddress: string, ...args: Array<any>) {
 		try {
 			await this.hre.run("verify:verify", {
@@ -133,14 +176,62 @@ export class DeploymentHelper {
 		}
 	}
 
-	async tryToGetSaveContractAddress(
-		contractName: string
+	/**
+	 *
+	 * @param chainName The chain name you want to get the contract from
+	 * @param cachedContractName The saved name of the deployed contract inside the <chain>_deployment.json
+	 * @returns tuple(bool success, string address). If it fails, the address will be empty
+	 */
+	getOtherChainContractAddress(
+		chainName: SupportedChain,
+		cachedContractName: string
+	): [boolean, string] {
+		const chainContracts = require(`../deployments/${chainName}_deployment.json`)
+		const history: IDeploymentHistory = chainContracts[cachedContractName]
+
+		const isFound: boolean = history !== undefined
+		return [isFound, isFound ? history.address : ""]
+	}
+
+	/**
+	 *
+	 * @param contractName The name of the contract inside the .sol file.
+	 * @param cachedContractName The saved name of the deployed contract inside the <chain>_deployment.json
+	 * @returns The contract object or undefined if not found
+	 */
+	async tryToLoadCachedContract(
+		contractName: string,
+		cachedContractName: string
+	): Promise<Contract | undefined> {
+		const contractHistory: IDeploymentHistory =
+			this.deploymentState[cachedContractName]
+
+		if (contractHistory === undefined) return undefined
+
+		const contractFactory = await this.hre.ethers.getContractFactory(
+			contractName
+		)
+
+		colorLog(
+			Colors.green,
+			`Loaded Cached contract ${cachedContractName} at ${contractHistory.address}`
+		)
+		return contractFactory.attach(contractHistory.address)
+	}
+
+	/**
+	 *
+	 * @param cachedContractName The saved name of the deployed contract inside the <chain>_deployment.json
+	 * @returns tuple(bool success, string address)
+	 */
+	async tryToGetCachedContractAddress(
+		cachedContractName: string
 	): Promise<[boolean, string]> {
-		if (this.deploymentState[contractName] !== undefined) {
-			const address = this.deploymentState[contractName].address
+		if (this.deploymentState[cachedContractName] !== undefined) {
+			const address = this.deploymentState[cachedContractName].address
 			colorLog(
 				Colors.green,
-				`${contractName} already exists. Loading ${address}`
+				`${cachedContractName} already exists. Loading ${address}`
 			)
 
 			return [true, address]
@@ -149,7 +240,14 @@ export class DeploymentHelper {
 		return [false, ""]
 	}
 
-	async sendAndWaitForTransaction(txPromise: Promise<any>) {
+	/**
+	 * @error throws an error if the mint isn't successful.
+	 * @param txPromise The transaction promise you want to execute
+	 * @returns TranscationReceipt of the minedTx
+	 */
+	async sendAndWaitForTransaction(
+		txPromise: Promise<any>
+	): Promise<ethers.providers.TransactionReceipt> {
 		const tx = await txPromise
 		const minedTx = await this.hre.ethers.provider.waitForTransaction(
 			tx.hash,
