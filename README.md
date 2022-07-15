@@ -1,3 +1,4 @@
+
 # Template Solidity Project with Foundry & Hardhat
 
 This is my go to template when I start a new project.
@@ -42,8 +43,7 @@ The only setup you need to do is:
    the template in your repo so if someone works with you or clone your
    project, s/he knows what to do.
 2. Configure [hardhat.config.ts](https://hardhat.org/config)
-3. Modify `./scripts/config/DeployConfig.ts` to match what you need during
-   your deployments.
+3. Modify `./scripts/config/DeployConfig.ts` to match what you need during your deployments.
 
 ## Strucutre
 
@@ -61,8 +61,9 @@ I'm using
 for the commands.
 
 e.g: `make test`
+e.g (with args): `make test EXTRA='-vvv --match-contract MyContractTest'`
 
-To deploy, either use `make deploy-<localhost|testnet|mainnet>` or
+To deploy, either use `make deploy-<localhost|testnet|mainnet> NETWORK='networkname'` or
 `npx hardhat deploy --network <NETWORK_NAME> --env <mainnet | testnet | localhost>`
 
 ## Recommendations
