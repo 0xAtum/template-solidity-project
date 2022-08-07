@@ -16,6 +16,8 @@ update:; forge update
 remappings:; forge remappings > remappings.txt
 
 # commands
+coverage :; forge coverage 
+coverage-output :; forge coverage --report lcov
 build  :; $(FORGE_CLEAN) && forge build 
 clean  :; $(FORGE_CLEAN)
 

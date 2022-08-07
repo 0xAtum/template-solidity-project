@@ -1,4 +1,5 @@
 .vscode
+lcov.info
 
 cache/
 out/

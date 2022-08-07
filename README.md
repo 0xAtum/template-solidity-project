@@ -1,4 +1,5 @@
 
+
 # Template Solidity Project with Foundry & Hardhat
 
 This is my go to template when I start a new project.
@@ -53,6 +54,17 @@ the noise on the root.
 
 ./scripts/ contains my deployment logic based on network with their
 configs.
+
+## Coverage
+
+Coverage isn't production ready, but still quite a nice tool to use.
+If you want to use it correctly, install
+
+- Coverage Gutter Extension (vscode)
+
+Then when you run `make coverage`, it will generate a file that Coverage Gutter will read. Go to your contract's code and use the vscode command `>Coverage Gutters: Display Coverage`
+
+You will see in red the code that isn't being tested by your tests.
 
 ## Commands script
 
