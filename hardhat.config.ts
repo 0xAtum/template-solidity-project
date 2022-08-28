@@ -20,7 +20,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(
 	async (_, __, runSuper) => {
 		const paths = await runSuper()
 		return paths.filter(
-			(p: string) => !p.endsWith(".t.sol") || p.includes("/mock/")
+			(p: string) => !p.includes("src/test") && !p.includes("src\\test")
 		)
 	}
 )
@@ -55,12 +55,13 @@ const config: HardhatUserConfig = {
 		},
 	},
 	solidity: {
-		version: "0.8.13",
+		version: "0.8.16",
 		settings: {
 			optimizer: {
 				enabled: true,
 				runs: 200,
 			},
+			viaIR: true,
 		},
 	},
 	paths: {
