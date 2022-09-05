@@ -1,5 +1,4 @@
 import fs from "fs"
-import { secrets } from "./.secrets"
 
 import { HardhatUserConfig, subtask, task } from "hardhat/config"
 import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names"
@@ -39,19 +38,19 @@ const config: HardhatUserConfig = {
 		localhost: {
 			url: "http://localhost:8545",
 		},
-		rinkeby: {
-			url: secrets.networks.rinkeby!.RPC_URL || "",
-			accounts: [secrets.networks.rinkeby!.PRIVATE_KEY],
+		goerli: {
+			url: process.env.ETH_GOERLI_RPC || "",
+			accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
 		},
 		mainnet: {
-			url: secrets.networks.mainnet!.RPC_URL,
-			accounts: [secrets.networks.mainnet!.PRIVATE_KEY],
-		},
+			url: process.env.ETH_MAINNET_RPC || "",
+			accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+		}
 	},
 	etherscan: {
 		apiKey: {
-			mainnet: secrets.networks.mainnet?.ETHERSCAN_API_KEY!,
-			rinkeby: secrets.networks.rinkeby?.ETHERSCAN_API_KEY!,
+			mainnet: process.env.ETHERSCAN_API_KEY!,
+			goerli: process.env.GOERLI_API_KEY!
 		},
 	},
 	solidity: {
