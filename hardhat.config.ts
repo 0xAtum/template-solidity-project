@@ -1,4 +1,5 @@
 import fs from "fs"
+import * as dotenv from 'dotenv';
 
 import { HardhatUserConfig, subtask, task } from "hardhat/config"
 import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names"
@@ -10,6 +11,10 @@ import "@nomiclabs/hardhat-waffle"
 import "@openzeppelin/hardhat-upgrades"
 
 import deploy from "./scripts/tasks/DeployTask"
+
+const FAKE_PRIVATE_KEY = "0xBeBeF90A7E9A8e018F0F0baBb868Bc432C5e7F1EfaAe7e5B465d74afDD87c7cf";
+
+dotenv.config();
 
 task("deploy", "Deploy task")
 	.addParam("env", "localhost | testnet | mainnet", "testnet")
@@ -40,12 +45,12 @@ const config: HardhatUserConfig = {
 		},
 		goerli: {
 			url: process.env.ETH_GOERLI_RPC || "",
-			accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+			accounts: [process.env.DEPLOYER_PRIVATE_KEY ?? FAKE_PRIVATE_KEY],
 		},
 		mainnet: {
 			url: process.env.ETH_MAINNET_RPC || "",
-			accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
-		}
+			accounts: [process.env.DEPLOYER_PRIVATE_KEY ?? FAKE_PRIVATE_KEY],
+		},
 	},
 	etherscan: {
 		apiKey: {
