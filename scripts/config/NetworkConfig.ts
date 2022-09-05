@@ -33,17 +33,3 @@ export type SupportedChain =
 	| "sokol"
 	// localhost
 	| "localhost"
-
-export type ChainConfig = {
-	[key in SupportedChain]?: Network
-}
-
-export interface Network {
-	RPC_URL: string
-	PRIVATE_KEY: string
-	ETHERSCAN_API_KEY?: string
-}
-
-export interface NetworkConfig {
-	networks: ChainConfig
-}
