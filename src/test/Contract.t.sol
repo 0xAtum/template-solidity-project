@@ -4,10 +4,20 @@ pragma solidity ^0.8.4;
 import { BaseTest, console } from "./base/BaseTest.t.sol";
 
 contract ContractTest is BaseTest {
-	function setUp() public {}
+	address private owner;
+	address private mockContract;
+
+	function setUp() public {
+		owner = generateAddress("Owner", false, 10 ether);
+		mockContract = generateAddress("ContractA", true);
+	}
 
 	function testExample() public {
-		console.log("Hello world!", accounts.PUBLIC_KEYS(0));
-		assertTrue(true);
+		console.log("Hello world!", owner);
+		assertEq(owner.balance, 10 ether);
+	}
+
+	function testExample2() public {
+		assertTrue(mockContract.code.length > 0);
 	}
 }
