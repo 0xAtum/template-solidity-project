@@ -12,6 +12,12 @@ contract BaseTest is Test {
 
 	uint256 private seed = 0;
 
+	modifier prankAs(address caller) {
+		vm.startPrank(caller);
+		_;
+		vm.stopPrank();
+	}
+
 	function generateAddress(string memory _name, bool _isContract)
 		internal
 		returns (address)
@@ -36,11 +42,5 @@ contract BaseTest is Test {
 		vm.deal(newAddress_, _eth);
 
 		return newAddress_;
-	}
-
-	modifier prankAs(address caller) {
-		vm.startPrank(caller);
-		_;
-		vm.stopPrank();
 	}
 }
