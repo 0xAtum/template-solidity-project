@@ -10,7 +10,7 @@ contract BaseTest is Test {
 	bytes internal constant ERC20_INVALID_BALANCE =
 		"ERC20: transfer amount exceeds balance";
 
-	uint256 private seed = 0;
+	uint256 private seed;
 
 	modifier prankAs(address caller) {
 		vm.startPrank(caller);
