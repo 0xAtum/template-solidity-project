@@ -66,6 +66,18 @@ Then when you run `make coverage`, it will generate a file that Coverage Gutter 
 
 You will see in red the code that isn't being tested by your tests.
 
+## How to deploy
+The deployment logic is inside of scripts/tasks/deploy/ where:
+- `Deploy.ts` is the core deployment logic
+- `deploy.xxx.ts` is the pre-configuraiton before the deployment  
+
+Then we use 
+- `make deploy-<localhost|testnet|mainnet> NETWORK='networkname'`
+or
+- `npx hardhat deploy --network <NETWORK_NAME> --env <mainnet | testnet | localhost>`
+
+You are welcome to change your deployment task as you like. To register a new Task logic, you have to include it into `hardhat.config.ts`
+
 ## Commands script
 
 I'm using
