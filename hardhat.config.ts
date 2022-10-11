@@ -51,15 +51,25 @@ const config: HardhatUserConfig = {
 			url: process.env.ETH_MAINNET_RPC || "",
 			accounts: [process.env.DEPLOYER_PRIVATE_KEY ?? FAKE_PRIVATE_KEY],
 		},
+		arbitrumTestnet: {
+			url: process.env.ARB_GOERLI_RPC || "",
+			accounts: [process.env.DEPLOYER_PRIVATE_KEY ?? FAKE_PRIVATE_KEY],
+		},
+		arbitrumOne: {
+			url: process.env.ARB_MAINNET_RPC || "",
+			accounts: [process.env.DEPLOYER_PRIVATE_KEY ?? FAKE_PRIVATE_KEY],
+		},
 	},
 	etherscan: {
 		apiKey: {
 			mainnet: process.env.ETHERSCAN_API_KEY!,
-			goerli: process.env.GOERLI_API_KEY!
+			goerli: process.env.ETHERSCAN_API_KEY!,
+			arbitrumOne: process.env.ARBISCAN_API_KEY!,
+			arbitrumTestnet: process.env.ARBISCAN_API_KEY!
 		},
 	},
 	solidity: {
-		version: "0.8.16",
+		version: "0.8.17",
 		settings: {
 			optimizer: {
 				enabled: true,
