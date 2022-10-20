@@ -87,6 +87,7 @@ export class DeploymentHelper {
 		)
 
 		this.saveDeployment()
+		await this.verifyContract(await this.hre.upgrades.erc1967.getImplementationAddress(contract.address));
 		return contract
 	}
 
