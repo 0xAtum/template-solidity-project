@@ -2,7 +2,19 @@
 
 # Template Solidity Project with Foundry & Hardhat
 
-This is my go to template when I start a new project.
+## Important
+
+This template is deprecated, but in a good condition for production as it was the main template for Vesta's projects.
+
+The main reason I was still using Hardhat is for the OZ-Upgradeable plugin to avoid any issues.
+
+Since then, foundry did a lot of progress and is in a mature state that I can create the OZ-Upgradeable plugin inside Forge if I want to. I don't see the point of keeping Hardhat.
+
+[New template - template-foundry-project](https://github.com/0xAtum/template-foundry-project)
+#
+
+
+This was my go to template when I was starting a new project.
 
 ## Dependencies
 
